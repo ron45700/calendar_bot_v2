@@ -20,6 +20,8 @@ env/
 .vscode/
 .idea/
 .DS_Store
+.bot_database.bak
+.bot_database.db
 
 # Local Documentation
 project_structure.md

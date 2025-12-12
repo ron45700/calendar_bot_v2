@@ -3,6 +3,8 @@ from flask import Flask, request
 from services.auth_service import create_flow, save_user_token_from_flow
 from database.connection import init_db
 
+import requests
+
 # הגדרה שמאפשרת עבודה בלי HTTPS בתוך השרת המקומי (פותר שגיאות של גוגל בפיתוח)
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
@@ -10,6 +12,34 @@ app = Flask(__name__)
 
 # אתחול הדאטה-בייס ברגע שהשרת עולה (כדי לוודא שהטבלאות קיימות)
 init_db()
+
+def send_welcome_message(telegram_id):
+    """שולח הודעת ברוכים הבאים מותאמת אישית לאחר התחברות מוצלחת"""
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    if not token:
+        print("❌ Error: Cannot send welcome message - Token missing.")
+        return
+
+    message = (
+        "🎉 **Success! I am connected to your calendar.**\n\n"
+        "By the way, you can now:\n"
+        "1. 🏷️ Give me a nickname (e.g., 'Call yourself Jarvis').\n"
+        "2. 🎨 Set custom colors for events (e.g., 'Set Sports to Yellow').\n\n"
+        "Just talk to me naturally!"
+    )
+    
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {
+        "chat_id": telegram_id,
+        "text": message,
+        "parse_mode": "Markdown"
+    }
+    
+    try:
+        requests.post(url, json=payload)
+        print(f"✅ Welcome message sent to {telegram_id}")
+    except Exception as e:
+        print(f"❌ Failed to send welcome message: {e}")
 
 @app.route('/callback')
 def callback():
@@ -45,11 +75,15 @@ def callback():
         success = save_user_token_from_flow(flow, telegram_id)
         
         if success:
+            # TRIGGER POINT: Send welcome message
+            send_welcome_message(telegram_id)
+            
             return """
             <div style="font-family: sans-serif; text-align: center; padding: 50px;">
                 <h1 style="color: green;">התחברת בהצלחה! 🎉</h1>
                 <p>הבוט מחובר עכשיו ליומן הגוגל שלך.</p>
-                <p>אתה יכול לסגור את החלון הזה ולחזור לטלגרם.</p>
+                <p>קיבלת הודעה בטלגרם עם הסבר על הצעדים הבאים.</p>
+                <p>אתה יכול לסגור את החלון הזה.</p>
             </div>
             """
         else:
