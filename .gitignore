@@ -1,0 +1,27 @@
+# Python specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+.Python
+env/
+
+# Environment Variables (CRITICAL FOR SECURITY)
+.env
+
+# Database
+*.db
+*.sqlite3
+
+# IDE settings
+.vscode/
+.idea/
+.DS_Store
+.bot_database.bak
+.bot_database.db
+
+# Local Documentation
+project_structure.md
